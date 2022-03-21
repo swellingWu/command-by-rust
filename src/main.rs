@@ -1,6 +1,7 @@
 // write a command line program
 use std::env;
-use std::fs;
+use std::process;
+use minigrep::Config;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -9,24 +10,12 @@ fn main() {
     // let query = &args[1];
     // let filename = &args[2];
     // => to the function of the analytical parameters extracted into a separate function
-    let config = Config::new(&args);
-    println!("Searching for {}", config.query);
-    println!("I file {}", config.filename);
-    
+    let config = Config::new(&args).unwrap_or_else(|err| {
+        // unwrap_or_else -> perform some custom and won't produce panic!
+        process::exit(1);
+    });
 
-    // add the code read the file
-    let contents = fs::read_to_string(config.filename).expect("sorry, the file was not found.");// read the file into a character
-    println!("With text:\n {}",contents);
-}
-struct Config {
-    query: String,
-    filename: String,
-}
-
-impl Config {
-    fn new(args: &[String]) -> Config{
-        let query = args[1].clone();
-        let filename = args[2].clone();
-        Config{query,filename}
-    }
+    if let Err(e) = minigrep::run(config) {
+        process::exit(1);
+    };
 }
